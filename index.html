@@ -1,0 +1,406 @@
+import React, { useMemo, useState } from "react";
+import { ArrowRight, Target, LineChart, Users2, BarChart3, ShieldCheck, Settings, Zap, Download, ExternalLink, CreditCard, Instagram, Youtube, Calculator } from "lucide-react";
+
+// ✅ Self-contained React + Tailwind landing page (dark theme)
+// No external UI libs. Works in plain React.
+// Includes: Header, Hero, Features, Demo (Tabs), Pricing (launch price with strike + animated border), FAQ (Accordion), Footer.
+
+const paymentLink = "https://pay.hotmart.com/A102611777M";
+const instagram = "https://instagram.com/felipeplanilhas";
+const youtube = "https://www.youtube.com/@felipeplanilhas";
+
+// --- Tiny UI helpers ---
+const Button = ({ href, children, className = "", target, rel }: { href?: string; children: React.ReactNode; className?: string; target?: string; rel?: string }) => {
+  const base = "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium bg-slate-100 text-slate-900 hover:bg-white transition-colors";
+  return href ? (
+    <a href={href} target={target} rel={rel} className={`${base} ${className}`}>{children}</a>
+  ) : (
+    <button className={`${base} ${className}`}>{children}</button>
+  );
+};
+const Card = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+  <div className={`rounded-2xl border border-slate-800 bg-slate-900 text-slate-100 ${className} flex flex-col h-full`}>{children}</div>
+);
+const CardHeader = ({ children }: { children: React.ReactNode }) => (<div className="p-5 ">{children}</div>);
+const CardTitle = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (<div className={`text-lg font-semibold ${className}`}>{children}</div>);
+const CardDescription = ({ children }: { children: React.ReactNode }) => (<p className="text-sm text-slate-300 mt-1">{children}</p>);
+const CardContent = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (<div className={`p-5 ${className}`}>{children}</div>);
+const CardFooter = ({ children }: { children: React.ReactNode }) => (<div className="p-5 border-t border-slate-800/70 flex items-center justify-between">{children}</div>);
+const Pill = ({ children }: { children: React.ReactNode }) => (
+  <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium text-slate-200 border-slate-700 bg-slate-800/60">
+    {/* simple sparkle via unicode to avoid extra imports */}
+    ✨ {children}
+  </span>
+);
+const Stat = ({ value, label }: { value: React.ReactNode; label: string }) => (
+  <div className="text-center">
+    <div className="text-3xl md:text-4xl font-semibold tracking-tight text-slate-100">{value}</div>
+    <div className="text-slate-400 text-xs md:text-sm mt-1">{label}</div>
+  </div>
+);
+
+// --- Simple Tabs ---
+const Tabs = ({ items, initial = 0 }: { items: { label: string; content: React.ReactNode }[]; initial?: number }) => {
+  const [i, setI] = useState(initial);
+  return (
+    <div>
+      <div className="inline-flex gap-2 rounded-xl border border-slate-800 bg-slate-900 p-1">
+        {items.map((t, idx) => (
+          <button key={idx} onClick={() => setI(idx)} className={`px-3 py-1.5 text-sm rounded-lg ${i === idx ? "bg-slate-800 text-white" : "text-slate-300 hover:text-white"}`}>{t.label}</button>
+        ))}
+      </div>
+      <div className="mt-4">{items[i]?.content}</div>
+    </div>
+  );
+};
+
+// --- Simple Accordion ---
+const QA = ({ q, a }: { q: string; a: React.ReactNode }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-slate-800 rounded-xl overflow-hidden">
+      <button onClick={() => setOpen(!open)} className="w-full text-left px-4 py-3 font-medium flex items-center justify-between">
+        <span>{q}</span>
+        <span className="text-slate-400">{open ? "-" : "+"}</span>
+      </button>
+      {open ? <div className="px-4 pb-4 text-slate-300 text-sm">{a}</div> : null}
+    </div>
+  );
+};
+
+// --- ROI Block ---
+const ROIBlock = () => {
+  const [meta, setMeta] = useState(5000);
+  const [prob, setProb] = useState(0.45);
+  const ponderada = useMemo(() => meta * (prob || 0), [meta, prob]);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Calculator className="w-5 h-5"/> Simulador rápido</CardTitle>
+        <CardDescription>Veja como a <b>Receita Ponderada</b> muda com a probabilidade do negócio.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 md:grid-cols-3">
+          <div>
+            <label className="text-xs text-slate-400">Meta Receita (R$)</label>
+            <input type="number" value={meta} onChange={(e)=>setMeta(Number(e.target.value||0))} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm"/>
+          </div>
+          <div>
+            <label className="text-xs text-slate-400">Probabilidade (%)</label>
+            <input type="number" value={Math.round((prob||0)*100)} onChange={(e)=>setProb((Number(e.target.value||0))/100)} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm"/>
+          </div>
+          <div className="rounded-xl bg-slate-800 p-4 flex items-center justify-between">
+            <span className="text-sm text-slate-400">Receita Ponderada</span>
+            <span className="text-xl font-semibold text-slate-100">R$ {ponderada.toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// --- Pricing (Launch price with strike & animated border) ---
+const Pricing = () => (
+  <section id="pricing" className="py-12 md:py-16">
+    <div className="mx-auto max-w-6xl px-4">
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Preço especial de lançamento 🚀</h2>
+        <p className="text-slate-300 mt-2">Download instantâneo, atualizações futuras e suporte básico por e-mail.</p>
+      </div>
+
+      <div className="mx-auto max-w-xl relative p-[2px] rounded-2xl bg-gradient-to-r from-sky-500 via-purple-500 to-pink-500 animate-gradient-x bg-[length:200%_200%]">
+        <div className="rounded-2xl bg-slate-900 p-6 text-center">
+          <h3 className="text-xl font-semibold mb-2 text-white">LUX CRM — Negócios, Metas e Painel</h3>
+          <p className="text-slate-400 mb-6">Tudo em uma única planilha premium, pronta para usar.</p>
+
+          <div className="flex flex-col items-center mb-6">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl text-slate-400 line-through">R$49,90</span>
+              <span className="text-4xl font-bold text-emerald-400">R$29,90</span>
+            </div>
+            <span className="text-sm text-amber-400 font-medium mt-1">-40% de desconto até 7 de novembro!</span>
+          </div>
+
+          <a href={paymentLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-indigo-500 px-6 py-3 text-slate-900 font-semibold hover:from-sky-300 hover:to-indigo-400 transition-all">
+            Comprar agora <ExternalLink className="w-4 h-4" />
+          </a>
+
+          <p className="text-xs text-slate-500 mt-4">Promoção válida por tempo limitado ⚡</p>
+        </div>
+      </div>
+    </div>
+
+    {/* Keyframes inline (plain React) */}
+    <style>{`
+      @keyframes gradient-x {
+        0%, 100% { background-position: 100% 0; }
+        50% { background-position: 0 0; }
+      }
+      .animate-gradient-x { animation: gradient-x 6s ease infinite; }
+    `}</style>
+  </section>
+);
+
+export default function App(){
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
+      {/* Header */}
+      <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2 font-semibold">Planilha <span className="hidden sm:inline">LUX CRM</span></div>
+          <nav className="hidden md:flex items-center gap-6 text-sm text-slate-300">
+            <a href="#features" className="hover:text-white">Recursos</a>
+            <a href="#demo" className="hover:text-white">Demonstração</a>
+            <a href="#pricing" className="hover:text-white">Preço</a>
+            <a href="#faq" className="hover:text-white">FAQ</a>
+          </nav>
+          <div className="flex items-center gap-2">
+            <Button href={paymentLink} target="_blank" rel="noreferrer">Comprar agora <CreditCard className="w-4 h-4"/></Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="mx-auto max-w-6xl px-4 py-14 md:py-20">
+          <div className="grid gap-10 md:grid-cols-2 md:items-center">
+            <div>
+              <Pill>CRM + Metas + Dashboard Premium</Pill>
+              <h1 className="mt-4 text-4xl md:text-5xl font-semibold tracking-tight">A planilha definitiva para <span className="bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">vender mais</span> e gerenciar seu funil.</h1>
+              <p className="mt-4 text-slate-300 leading-relaxed">Organize negócios, acompanhe metas por responsável e visualize resultados em um painel interativo — tudo sem complicação e com visual premium.</p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Button href={paymentLink} target="_blank" rel="noreferrer" className="px-5 py-2.5">Garantir minha cópia <ArrowRight className="w-4 h-4"/></Button>
+                <a href="#features" className="text-slate-300 hover:text-white text-sm">Ver recursos</a>
+              </div>
+              <div className="mt-8 grid grid-cols-3 gap-6">
+                <Stat value={"+120"} label="indicadores e campos úteis"/>
+                <Stat value="3" label="abas-chave: CRM, Metas e Painel"/>
+                <Stat value="< 10 min" label="para começar do zero"/>
+              </div>
+            </div>
+
+            {/* Mini score mock */}
+            <div className="relative">
+              <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-xl">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="font-medium">Painel — Placar de Metas</div>
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <span className="inline-flex items-center gap-1"><Target className="w-3 h-3"/> Mês</span>
+                    <span className="inline-flex items-center gap-1"><LineChart className="w-3 h-3"/> Atingimento</span>
+                    <span className="inline-flex items-center gap-1"><Users2 className="w-3 h-3"/> Equipe</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    {nome:"Ana", meta:20000, real:21800},
+                    {nome:"Rafael", meta:15000, real:12000},
+                    {nome:"Clara", meta:10000, real:8000},
+                  ].map((r, i)=>{
+                    const pct = r.real / r.meta;
+                    return (
+                      <div key={i} className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                        <div className="text-sm font-medium text-slate-100">{r.nome}</div>
+                        <div className="mt-1 text-xs text-slate-400">Meta R$ {r.meta.toLocaleString("pt-BR")}</div>
+                        <div className="mt-2 h-2 w-full rounded-full bg-slate-800">
+                          <div className={`${pct>=1?"bg-emerald-500": pct>=.8?"bg-amber-500":"bg-rose-500"} h-2 rounded-full`} style={{width:`${Math.min(pct*100,100)}%`}}/>
+                        </div>
+                        <div className="mt-2 text-xs font-medium">{(pct*100).toFixed(0)}%</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="py-12 md:py-16">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="mb-8 flex items-end justify-between">
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Recursos que fazem diferença</h2>
+            <span className="text-xs text-slate-300">Visual premium + produtividade</span>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 items-stretch auto-rows-fr">
+            <Card className="hover:shadow-lg hover:shadow-slate-900/30 transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><BarChart3 className="w-5 h-5"/> Painel interativo</CardTitle>
+                <CardDescription>KPIs de receita, ticket, ciclo e <b>placar de metas</b> com semáforo automático.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0 text-slate-300 text-sm">
+                • Filtros por responsável e mês<br/>
+                • Gráfico de receita por mês<br/>
+                • Indicadores com cores dinâmicas
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg hover:shadow-slate-900/30 transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Users2 className="w-5 h-5"/> CRM simples e completo</CardTitle>
+                <CardDescription>Negócios com <i>Status</i>, <i>Etapa</i>, <i>Probabilidade</i>, <i>Responsável</i> e projeções.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0 text-slate-300 text-sm">
+                • Receita bruta/ponderada automáticas<br/>
+                • Integração com Produtos e Contatos<br/>
+                • Campos padronizados via listas
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg hover:shadow-slate-900/30 transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-5 h-5"/> Confiável e rápido</CardTitle>
+                <CardDescription>Sem macros obscuras. Fórmulas robustas em PT-BR e validações nas colunas-chave.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0 text-slate-300 text-sm">
+                • Estrutura leve (Excel/Sheets)<br/>
+                • Sem dependências externas<br/>
+                • Layout responsivo
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg hover:shadow-slate-900/30 transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Settings className="w-5 h-5"/> Config fácil</CardTitle>
+                <CardDescription>Listas suspensas (Etapas, Fontes, Responsáveis) centralizadas na aba <b>Config</b>.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0 text-slate-300 text-sm">
+                • Editou no Config → aplica no CRM<br/>
+                • Evita erros de digitação<br/>
+                • Deixe tudo padronizado
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg hover:shadow-slate-900/30 transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Zap className="w-5 h-5"/> Comece em minutos</CardTitle>
+                <CardDescription>Modelos de exemplo e dicas embutidas em cada aba para acelerar sua implantação.</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0 text-slate-300 text-sm">
+                • Templates prontos p/ usar<br/>
+                • Guia “primeiros passos”<br/>
+                • Campos essenciais já criados
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg hover:shadow-slate-900/30 transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Download className="w-5 h-5"/> Compatível</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 text-slate-300 text-sm">
+                • Separadores/PT-BR ok<br/>
+                • Formatos de data/moeda<br/>
+                • Exporte e compartilhe fácil
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Demo */}
+      <section id="demo" className="py-12 md:py-16 bg-slate-950/40">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Veja como funciona</h2>
+            <p className="text-slate-300 mt-2">Alterna entre as abas para conhecer o fluxo completo: Negócios → Metas → Painel.</p>
+          </div>
+          <Tabs
+            items={[
+              { label: "Negócios (CRM)", content: (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Negócios</CardTitle>
+                    <CardDescription>Receita Bruta = Qtde × Preço | Receita Ponderada = Receita Bruta × Probabilidade</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-slate-300">
+                            <th className="p-2">Empresa</th>
+                            <th className="p-2">Produto</th>
+                            <th className="p-2">Qtde</th>
+                            <th className="p-2">Preço Lista (sug.)</th>
+                            <th className="p-2">Receita Bruta</th>
+                            <th className="p-2">Probabilidade</th>
+                            <th className="p-2">Receita Ponderada</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[{emp:"Alpha Ltda", prod:"Plano Pro", q:2, preco:1999, prob:.6},{emp:"Beta SA", prod:"Serviço X", q:1, preco:4500, prob:.4}].map((n,i)=>{
+                            const bruta = n.q*n.preco; const pond = bruta*n.prob;
+                            return (
+                              <tr key={i} className="border-t border-slate-800 text-slate-100">
+                                <td className="p-2">{n.emp}</td>
+                                <td className="p-2">{n.prod}</td>
+                                <td className="p-2">{n.q}</td>
+                                <td className="p-2">R$ {n.preco.toLocaleString("pt-BR")}</td>
+                                <td className="p-2 font-medium">R$ {bruta.toLocaleString("pt-BR")}</td>
+                                <td className="p-2">{Math.round(n.prob*100)}%</td>
+                                <td className="p-2 font-medium">R$ {pond.toLocaleString("pt-BR")}</td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              )},
+              { label: "Metas", content: <ROIBlock /> },
+              { label: "Placar de Metas", content: (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Placar de Metas</CardTitle>
+                    <CardDescription>Acompanhamento por responsável com semáforo.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-3 md:grid-cols-3">
+                      {[{nome:"Ana", meta:20000, real:21800},{nome:"Rafael", meta:15000, real:12000},{nome:"Clara", meta:10000, real:8000}].map((r,i)=>{
+                        const pct = r.real/r.meta; return (
+                          <div key={i} className="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                            <div className="text-sm font-medium text-slate-100">{r.nome}</div>
+                            <div className="text-xs text-slate-400">Meta R$ {r.meta.toLocaleString("pt-BR")}</div>
+                            <div className="mt-2 h-2 rounded-full bg-slate-800 w-full">
+                              <div className={`${pct>=1?"bg-emerald-500":pct>=.8?"bg-amber-500":"bg-rose-500"} h-2 rounded-full`} style={{width:`${Math.min(pct*100,100)}%`}}/>
+                            </div>
+                            <div className="mt-2 text-xs font-medium">{(pct*100).toFixed(0)}%</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            ]}
+          />
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <Pricing/>
+
+      {/* FAQ */}
+      <section id="faq" className="py-12 md:py-16 bg-slate-950/40">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Perguntas frequentes</h2>
+            <p className="text-slate-300 mt-2">Tudo o que você precisa saber antes de comprar.</p>
+          </div>
+          <div className="space-y-3 max-w-3xl mx-auto">
+            <QA q="Funciona no Google Sheets?" a={<>Sim. As fórmulas são compatíveis (pode exigir pequenas adaptações em validações e formato de data).</>} />
+            <QA q="Como recebo o arquivo após a compra?" a={<>O download é imediato e você também recebe um e-mail com o link para baixar quando quiser. A compra é feita 100% pelo Hotmart.</>} />
+            <QA q="Tem atualizações?" a={<>Você receberá as atualizações futuras desta versão do produto sem custo adicional.</>} />
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-800 bg-slate-950">
+        <div className="mx-auto max-w-6xl px-4 py-8 text-sm text-slate-400 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>Felipe Planilhas — © 2025. Todos os direitos reservados.</div>
+          <div className="flex items-center gap-4">
+            <Button href={paymentLink} target="_blank" rel="noreferrer" className="bg-gradient-to-r from-emerald-400 to-lime-400 text-slate-900 hover:from-emerald-300 hover:to-lime-300">Comprar <ExternalLink className="w-3 h-3"/></Button>
+            <a href={instagram} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-slate-200"><Instagram className="w-4 h-4"/> Instagram</a>
+            <a href={youtube} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-slate-200"><Youtube className="w-4 h-4"/> YouTube</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
