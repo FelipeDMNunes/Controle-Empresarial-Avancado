@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>LUX CRM — Planilha Premium</title>
-  <meta name="description" content="Planilha LUX CRM — Negócios, Metas e Painel. Visual premium, fórmulas automáticas e painel interativo. Preço especial de lançamento!" />
+  <meta name="description" content="Planilha LUX CRM — Negócios, Metas e Painel. Visual premium, fórmulas automáticas e painel interativo." />
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Fonte opcional para um look mais premium -->
@@ -63,7 +63,7 @@
           <div class="mt-6 flex flex-wrap items-center gap-3">
             <a href="https://pay.hotmart.com/N102639401I" target="_blank" rel="noreferrer"
                class="focus-ring inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium bg-gradient-to-r from-emerald-400 to-lime-400 text-slate-900 hover:from-emerald-300 hover:to-lime-300">
-              Garantir minha cópia
+              Comprar agora
               <svg width="16" height="16" viewBox="0 0 24 24" class="opacity-90"><path fill="currentColor" d="m13.293 5.293l6 6l-1.414 1.414L14 8.828V20h-2V8.828l-3.879 3.879l-1.414-1.414l6-6a1 1 0 0 1 1.414 0"/></svg>
             </a>
             <a href="#features" class="text-slate-300 hover:text-white text-sm">Ver recursos</a>
@@ -330,21 +330,17 @@
   <section id="pricing" class="py-12 md:py-16">
     <div class="mx-auto max-w-6xl px-4">
       <div class="mb-8 text-center">
-        <h2 class="text-2xl md:text-3xl font-semibold tracking-tight">Preço especial de lançamento 🚀</h2>
+        <h2 class="text-2xl md:text-3xl font-semibold tracking-tight">Preço</h2>
         <p class="text-slate-300 mt-2">Download instantâneo, atualizações futuras e suporte básico por e-mail.</p>
       </div>
 
-      <div class="mx-auto max-w-xl relative p-[2px] rounded-2xl bg-gradient-to-r from-sky-500 via-purple-500 to-pink-500 animate-gradient-x">
-        <div class="rounded-2xl bg-slate-900 p-6 text-center">
+      <div class="mx-auto max-w-xl">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-center">
           <h3 class="text-xl font-semibold mb-2 text-white">LUX CRM — Negócios, Metas e Painel</h3>
           <p class="text-slate-400 mb-6">Tudo em uma única planilha premium, pronta para usar.</p>
 
           <div class="flex flex-col items-center mb-6">
-            <div class="flex items-center gap-3">
-              <span class="text-2xl text-slate-400 line-through">R$49,90</span>
-              <span class="text-4xl font-bold text-emerald-400">R$29,90</span>
-            </div>
-            <span class="text-sm text-amber-400 font-medium mt-1">-40% de desconto até 7 de novembro!</span>
+            <span class="text-4xl font-bold text-emerald-400">R$49,90</span>
           </div>
 
           <a href="https://pay.hotmart.com/N102639401I" target="_blank" rel="noreferrer"
@@ -352,8 +348,6 @@
             Comprar agora
             <svg width="16" height="16" viewBox="0 0 24 24" class="opacity-90"><path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3l-1.42-1.42l9.3-9.29H14V3Zm5 18H5q-.825 0-1.413-.588T3 19V5q0-.825.588-1.413T5 3h7v2H5v14h14v-7h2v7q0 .825-.588 1.413T19 21Z"/></svg>
           </a>
-
-          <p class="text-xs text-slate-500 mt-4">Promoção válida por tempo limitado ⚡</p>
         </div>
       </div>
     </div>
@@ -442,10 +436,17 @@
     const pondValor = document.getElementById('pond-valor');
     function fmtBR(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); }
     function updatePonderada(){
-      const m = Number(meta.value||0);
-      const p = Number(prob.value||0)/100;
-      pondValor.textContent = 'R$ ' + fmtBR(m*p);
+      const m = Number(meta?.value || 0);
+      const p = Number(prob?.value || 0)/100;
+      if(pondValor) pondValor.textContent = 'R$ ' + fmtBR(m*p);
     }
+    meta?.addEventListener('input', updatePonderada);
+    prob?.addEventListener('input', updatePonderada);
+    updatePonderada();
+  </script>
+</body>
+</html>
+
     if(meta && prob){ ['input','change'].forEach(evt=>{ meta.addEventListener(evt, updatePonderada); prob.addEventListener(evt, updatePonderada); }); }
   </script>
 </body>
